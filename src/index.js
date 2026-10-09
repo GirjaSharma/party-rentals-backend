@@ -1,10 +1,12 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import businessesRoutes from './routes/businesses.routes.js';
 import prisma from './db/prisma.js';
+import {checkJwt, attachUser, requireBusiness} from './middleware/auth.js'
+import {getBookings} from './controllers/bookings.controller.js'
 
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +32,12 @@ app.get('/api/db-health', async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
+
+app.get('/api/auth/me', checkJwt, attachUser, (req, res) =>{
+    res.json({user: req.dbUser, memberships: req.memberships});
+});
+
+app.use('/api/businesses', businessesRoutes);
 
 app.use('/api/dashboard', dashboardRoutes);
 
